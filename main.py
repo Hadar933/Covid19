@@ -2,13 +2,17 @@ import csv
 import urllib.request
 from datetime import date, timedelta
 import matplotlib.pyplot as plt
-import numpy as np
 
 SUCCESS = 1
 FAILURE = 0
 DOWNLOAD_PROCESS_MSG = "downloading..."
 DOWNLOAD_SUCCESS_MSG = "download complete."
 DOWNLOAD_FAILURE_MSG = "download failed."
+OECD = ["Israel", "Australia", "Austria", "Belgium", "Canada", "Chile", "Colombia", "Czech Republic", "Denmark",
+        "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland",
+        "Italy", "Japan", "South Korea", "Latvia", "Lithuania", "Luxembourg", "Mexico", "Netherlands",
+        "New Zealand", "Norway", "Poland", "Portugal", "Slovakia", "Slovenia", "Spain", "Sweden",
+        "Switzerland", "Turkey", "United Kingdom", "United States"]
 
 URL = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 FILE_NAME = "data_" + str(date.today()) + ".csv"
@@ -69,14 +73,9 @@ def get_oecd_dict():
     :return: oecd dict
     """
     oecd_dict = dict()
-    oecd_countries = ["Australia", "Austria", "Belgium", "Canada", "Chile", "Colombia", "Czech Republic", "Denmark",
-                      "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Israel",
-                      "Italy", "Japan", "Korea", "Latvia", "Lithuania", "Luxembourg", "Mexico", "Netherlands",
-                      "New Zealand", "Norway", "Poland", "Portugal", "Slovak Rebublic", "Slovenia", "Spain", "Sweden",
-                      "Switzerland", "Turkey", "United Kingdom", "United States"]
     data_dict = create_data_dict()
     for item in data_dict:
-        if item in oecd_countries:
+        if item in OECD:
             oecd_dict[item] = data_dict[item]
     return oecd_dict
 
@@ -105,7 +104,7 @@ def get_data_in_range(start_date, end_date, data, dict, country):
     gets all of the data of the given country from start date to end date
     :param start_date: as a string
     :param end_date: as a string
-    :param data: the data we wish to see
+    :param value: the data we wish to see
     :param dict: the dictionnary that contains the data
     :param country: the country in which we are interested
     :return:
@@ -113,49 +112,59 @@ def get_data_in_range(start_date, end_date, data, dict, country):
     result_date = []
     dates = generate_all_dates(start_date, end_date)
     for curr_date in dates:
-        result_date.append(dict[country][curr_date][data])
+        value = dict[country][curr_date][data]
+        if len(value) > 0:
+            result_date.append(float(value))
     return result_date
 
 
-def plot_data(start_date, end_date, data, country, dict):
+def get_axis_data(start_date, end_date, data, country, dict):
     """
-    plots
-    :param start_date:
-    :param end_date:
-    :param data:
-    :param country:
-    :param dict:
-    :return:
+    plots the data according to the parameters
+    :param start_date: "yyyy/mm/dd"
+    :param end_date: "yyyy/mm/dd"
+    :param data: the data we wish to see
+    :param country
+    :param dict: the entire data structure (as a dictionary)
+    :return: the plot itself for future use
     """
     y_data = get_data_in_range(start_date, end_date, data, dict, country)  # data itself
     x_data = generate_all_dates(start_date, end_date)  # time
-    x_data = [item[2:] for item in x_data]  # remove the 2020- prefix
+    x_data = [x_data[i][2:] for i in range(len(y_data)) if y_data[i] != ""]  # remove missing data and shorten date val
+    return x_data, y_data
 
-    plt.plot(x_data, y_data, marker='.', linestyle="dashed")
 
-    plt.title(country + " " + data + " from " + start_date + " to " + end_date)
-    
-    plt.xlabel("Date")
-    x_jump = 14  # data every two weeks
-    xticks_displayed = [x_data[i] for i in range(len(x_data)) if i % x_jump == 0]
-    plt.xticks(np.arange(0, len(x_data), x_jump), xticks_displayed, rotation="vertical")
+def plot_multiple_data(country_lst, data, end_date, start_date, data_dict):
+    """
 
+    :param country_lst:
+    :param data:
+    :param end_date:
+    :param start_date:
+    :param data_dict:
+    :return:
+    """
+    for country in country_lst:
+        x_data, y_data = get_axis_data(start_date, end_date, data, country, data_dict)
+        plt.plot(x_data, y_data, marker='.', linestyle="dashed")
+    plt.title(data + " from " + start_date + " to " + end_date)
+    plt.xlabel("date")
+    plt.xticks(rotation="vertical")
     plt.ylabel(data)
-    y_jump = (max(y_data) - min(y_data)) / len(y_data)
-    plt.yticks(np.arange(0, len(y_data), y_jump), [y_data[i] for i in range(len(x_data)) if i % 14 == 0],
-               rotation="horizontal")
-
+    plt.yticks(rotation="horizontal")
+    plt.grid()
+    plt.legend(country_lst)
     plt.show()
 
 
 if __name__ == '__main__':
     " note that dates should be yyyy/mm/dd "
-    # download_data()
+    #download_data()
 
-    start_date = "2020-01-01"
-    end_date = "2020-10-01"
-    data = "total_cases"
-    country = "Israel"
+    start_date = "2020-10-01"
+    end_date = "2020-10-03"
+    data = "new_cases"
+    country_lst = ["Israel", "United States","United Kingdom","Italy","Spain","Australia","Greece"]
 
-    oecd_dict = get_oecd_dict()
-    plot_data(start_date, end_date, data, country, oecd_dict)
+    data_dict = create_data_dict()
+    plot_multiple_data(country_lst, data, end_date, start_date, data_dict)
