@@ -1,7 +1,7 @@
 """
 @author: Hadar Sharvit
 @see: ourworldindata (database)
-you can loop for either one of the following:
+you can check for either one of the following:
 
 ['total_cases', 'new_cases', 'new_cases_smoothed', 'total_deaths', 'new_deaths', 'new_deaths_smoothed',
  'total_cases_per_million', 'new_cases_per_million', 'new_cases_smoothed_per_million', 'total_deaths_per_million',
@@ -11,7 +11,7 @@ you can loop for either one of the following:
      'gdp_per_capita', 'extreme_poverty', 'cardiovasc_death_rate', 'diabetes_prevalence', 'female_smokers', 'male_smokers',
       'handwashing_facilities', 'hospital_beds_per_thousand', 'life_expectancy', 'human_development_index']
 
-
+the database spans on countries and dates starting from 2019-31-12 to this date (today)
 """
 
 import csv
@@ -55,11 +55,14 @@ def generate_sub_dict(topics, line):
 def create_data_dict():
     """
     this function generates a dictionary, in which the key is a location (ex. israel,usa,etc...) and the value
-    is the entire data set, that is relevant to the given country.
-    the structure of the data is as followed:
+    is another dictionary, where the key is a date, and the value is the entire data set that is relevant to the given
+    country.
+    a representation of the dictionary is provided:
     {
     country_name1: {
-                    date1 : {...data...}, date2 : {...data...}, ...
+                    date1 : {...data...},
+                    date2 : {...data...},
+                    ...
                    }
     country_name2: ...
     ...
@@ -115,7 +118,7 @@ def generate_all_dates(start_date, end_date):
     return dates
 
 
-def get_data_in_range(start_date, end_date, data, dict, country):
+def data_in_range(start_date, end_date, data, dict, country):
     """
     gets all of the data of the given country from start date to end date
     :param start_date: as a string
@@ -123,7 +126,6 @@ def get_data_in_range(start_date, end_date, data, dict, country):
     :param value: the data we wish to see
     :param dict: the dictionnary that contains the data
     :param country: the country in which we are interested
-    :return:
     """
     result_date = []
     dates = generate_all_dates(start_date, end_date)
@@ -134,7 +136,7 @@ def get_data_in_range(start_date, end_date, data, dict, country):
     return result_date
 
 
-def get_axis_data(start_date, end_date, data, country, dict):
+def axis_data(start_date, end_date, data, country, dict):
     """
     plots the data according to the parameters
     :param start_date: "yyyy/mm/dd"
@@ -144,7 +146,7 @@ def get_axis_data(start_date, end_date, data, country, dict):
     :param dict: the entire data structure (as a dictionary)
     :return: the plot itself for future use
     """
-    y_data = get_data_in_range(start_date, end_date, data, dict, country)  # data itself
+    y_data = data_in_range(start_date, end_date, data, dict, country)  # data itself
     x_data = generate_all_dates(start_date, end_date)  # time
     x_data = [x_data[i][2:] for i in range(len(y_data)) if y_data[i] != ""]  # remove missing data and shorten date val
     return x_data, y_data
@@ -160,15 +162,27 @@ def plot_multiple_countries(country_lst, data, end_date, start_date, data_dict):
     :param data_dict
     """
     for country in country_lst:
-        x_data, y_data = get_axis_data(start_date, end_date, data, country, data_dict)
+        x_data, y_data = axis_data(start_date, end_date, data, country, data_dict)
         plt.plot(x_data, y_data, marker='.', linestyle="dashed")
-    plt.title(data + " from " + start_date + " to " + end_date)
+    generic_plot(country_lst, data, end_date, start_date)
+
+
+def generic_plot(lst, data_or_country, end_date, start_date):
+    """
+    a helper method that organizes the plots
+    :param lst: either countries or data array
+    :param data_or_country: 
+    :param end_date: 
+    :param start_date:
+    :return: 
+    """
+    plt.title(data_or_country + " from " + start_date + " to " + end_date)
     plt.xlabel("date")
     plt.xticks(rotation="vertical")
-    plt.ylabel(data)
+    plt.ylabel(data_or_country)
     plt.yticks(rotation="horizontal")
     plt.grid()
-    plt.legend(country_lst)  # recommended for <10 countries only
+    plt.legend(lst)  # recommended for <10 items only
     plt.show()
 
 
@@ -183,6 +197,7 @@ def get_specific_data(data_dict, country, date, data_to_show):
     """
     return data_to_show + " in " + country + " on " + date + " is: " + data_dict[country][date][data_to_show]
 
+
 def plot_multiple_data(country, data_lst, end_date, start_date, data_dict):
     """
     plots all of the given data values of some country on some date in one graph
@@ -193,6 +208,11 @@ def plot_multiple_data(country, data_lst, end_date, start_date, data_dict):
     :param data_dict:
     :return:
     """
+    for data in data_lst:
+        x_data, y_data = axis_data(start_date, end_date, data, country, data_dict)
+        plt.plot(x_data, y_data, marker='.', linestyle="dashed")
+    generic_plot(data_lst, country, end_date, start_date)
+
 
 if __name__ == '__main__':
     """
@@ -203,11 +223,13 @@ if __name__ == '__main__':
     """
     # download_data()
 
-    start_date = "2020-09-01"
-    end_date = "2020-10-03"
-    data = 'total_cases_per_million'
+    # example:
+    start = "2020-09-01"
+    end = "2020-10-03"
+    data_str = 'total_cases_per_million'
     country_lst = ["Israel", "United States"]
-    data_dict = get_oecd_dict()
+    data_list = ['total_deaths',"total_cases"] #TODO: there a bug here, data has no effect on plot  
+    data_structure = get_oecd_dict()
 
-    # print(get_specific_data(data_dict, country_lst[0], start_date, data))
-    plot_multiple_countries(country_lst, data, end_date, start_date, data_dict)
+    # plot_multiple_countries(country_lst, data_str, end, start, data_structure)
+    plot_multiple_data(country_lst[0],data_list,end,start,data_structure)
