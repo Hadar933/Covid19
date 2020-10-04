@@ -1,6 +1,7 @@
 import csv
 import urllib.request
 from datetime import date, timedelta
+import matplotlib.pyplot as plt
 
 SUCCESS = 1
 FAILURE = 0
@@ -94,7 +95,7 @@ def generate_all_dates(start_date, end_date):
     delta = edate - sdate
     for i in range(delta.days + 1):
         day = sdate + timedelta(days=i)
-        dates.append(day)
+        dates.append(str(day))
     return dates
 
 
@@ -111,18 +112,38 @@ def get_data_in_range(start_date, end_date, data, dict, country):
     result_date = []
     dates = generate_all_dates(start_date, end_date)
     for curr_date in dates:
-        curr_date = str(curr_date)
-        result_date.append(dict[country][str(curr_date)][data])
+        result_date.append(dict[country][curr_date][data])
     return result_date
+
+
+def plot_data(start_date, end_date, data, country, dict):
+    """
+    plots
+    :param start_date:
+    :param end_date:
+    :param data:
+    :param country:
+    :param dict:
+    :return:
+    """
+    y_data = get_data_in_range(start_date, end_date, data, dict, country)  # data itself
+    x_data = generate_all_dates(start_date, end_date)  # time
+    x_data = [item[5:] for item in x_data]  # remove the 2020- prefix
+    plt.plot(x_data, y_data, marker='.', linestyle="dashed")
+    plt.title(country + " " + data + " from " + start_date + " to " + end_date)
+    plt.xlabel("Date")
+    plt.ylabel(data)
+    plt.show()
 
 
 if __name__ == '__main__':
     " note that dates should be yyyy/mm/dd "
-    start_date = "2020-09-01"
-    end_date = "2020-10-01"
-    data = "total_tests_per_thousand"
-    country = "Israel"
     # download_data()
+
+    start_date = "2020-01-01"
+    end_date = "2020-10-01"
+    data = "total_cases"
+    country = "Israel"
+
     oecd_dict = get_oecd_dict()
-    # print(oecd_dict["Israel"]['2020-05-02']["total_tests_per_thousand"])
-    print(get_data_in_range(start_date, end_date,data,oecd_dict,country))
+    plot_data(start_date, end_date, data, country, oecd_dict)
