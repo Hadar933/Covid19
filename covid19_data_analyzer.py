@@ -1,5 +1,17 @@
 """
 @author: Hadar Sharvit
+@see: ourworldindata (database)
+you can loop for either one of the following:
+
+['total_cases', 'new_cases', 'new_cases_smoothed', 'total_deaths', 'new_deaths', 'new_deaths_smoothed',
+ 'total_cases_per_million', 'new_cases_per_million', 'new_cases_smoothed_per_million', 'total_deaths_per_million',
+  'new_deaths_per_million', 'new_deaths_smoothed_per_million', 'new_tests', 'total_tests', 'total_tests_per_thousand',
+   'new_tests_per_thousand', 'new_tests_smoothed', 'new_tests_smoothed_per_thousand', 'tests_per_case', 'positive_rate',
+    'tests_units', 'stringency_index', 'population', 'population_density', 'median_age', 'aged_65_older', 'aged_70_older',
+     'gdp_per_capita', 'extreme_poverty', 'cardiovasc_death_rate', 'diabetes_prevalence', 'female_smokers', 'male_smokers',
+      'handwashing_facilities', 'hospital_beds_per_thousand', 'life_expectancy', 'human_development_index']
+
+
 """
 
 import csv
@@ -60,7 +72,6 @@ def create_data_dict():
     with open(FILE_NAME) as f:
         csv_file = csv.reader(f, delimiter=",")
         topics = next(csv_file)
-        print(topics)
         for row in csv_file:
             sub_dict = generate_sub_dict(topics, row)
             country_name = row[2]  # first key
@@ -139,15 +150,14 @@ def get_axis_data(start_date, end_date, data, country, dict):
     return x_data, y_data
 
 
-def plot_multiple_data(country_lst, data, end_date, start_date, data_dict):
+def plot_multiple_countries(country_lst, data, end_date, start_date, data_dict):
     """
-
-    :param country_lst:
-    :param data:
-    :param end_date:
-    :param start_date:
-    :param data_dict:
-    :return:
+    plots the data of several countries
+    :param country_lst: list of string representing country names (capital first letter required)
+    :param data: the data we which to see
+    :param end_date
+    :param start_date
+    :param data_dict
     """
     for country in country_lst:
         x_data, y_data = get_axis_data(start_date, end_date, data, country, data_dict)
@@ -158,9 +168,31 @@ def plot_multiple_data(country_lst, data, end_date, start_date, data_dict):
     plt.ylabel(data)
     plt.yticks(rotation="horizontal")
     plt.grid()
-    plt.legend(country_lst) # recommended for <10 countries only
+    plt.legend(country_lst)  # recommended for <10 countries only
     plt.show()
 
+
+def get_specific_data(data_dict, country, date, data_to_show):
+    """
+    returns a specific data of some country on some day
+    :param data_dict: the data structure
+    :param country
+    :param date: specific date "yyyy/mm/dd
+    :param data_to_show: the wanted data
+    :return: informative message, providing the value requested
+    """
+    return data_to_show + " in " + country + " on " + date + " is: " + data_dict[country][date][data_to_show]
+
+def plot_multiple_data(country, data_lst, end_date, start_date, data_dict):
+    """
+    plots all of the given data values of some country on some date in one graph
+    :param country:
+    :param data_lst:  an array of data values (ex. ['total_cases', 'tests_per_case']
+    :param end_date:
+    :param start_date:
+    :param data_dict:
+    :return:
+    """
 
 if __name__ == '__main__':
     """
@@ -173,8 +205,9 @@ if __name__ == '__main__':
 
     start_date = "2020-09-01"
     end_date = "2020-10-03"
-    data = "new_cases"
-    country_lst = ["Israel", "United States", "United Kingdom", "Italy", "Spain", "Australia", "Greece"]
-
+    data = 'total_cases_per_million'
+    country_lst = ["Israel", "United States"]
     data_dict = get_oecd_dict()
-    plot_multiple_data(country_lst, data, end_date, start_date, data_dict)
+
+    # print(get_specific_data(data_dict, country_lst[0], start_date, data))
+    plot_multiple_countries(country_lst, data, end_date, start_date, data_dict)
