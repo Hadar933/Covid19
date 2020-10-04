@@ -2,6 +2,7 @@ import csv
 import urllib.request
 from datetime import date, timedelta
 import matplotlib.pyplot as plt
+import numpy as np
 
 SUCCESS = 1
 FAILURE = 0
@@ -128,11 +129,22 @@ def plot_data(start_date, end_date, data, country, dict):
     """
     y_data = get_data_in_range(start_date, end_date, data, dict, country)  # data itself
     x_data = generate_all_dates(start_date, end_date)  # time
-    x_data = [item[5:] for item in x_data]  # remove the 2020- prefix
+    x_data = [item[2:] for item in x_data]  # remove the 2020- prefix
+
     plt.plot(x_data, y_data, marker='.', linestyle="dashed")
+
     plt.title(country + " " + data + " from " + start_date + " to " + end_date)
+    
     plt.xlabel("Date")
+    x_jump = 14  # data every two weeks
+    xticks_displayed = [x_data[i] for i in range(len(x_data)) if i % x_jump == 0]
+    plt.xticks(np.arange(0, len(x_data), x_jump), xticks_displayed, rotation="vertical")
+
     plt.ylabel(data)
+    y_jump = (max(y_data) - min(y_data)) / len(y_data)
+    plt.yticks(np.arange(0, len(y_data), y_jump), [y_data[i] for i in range(len(x_data)) if i % 14 == 0],
+               rotation="horizontal")
+
     plt.show()
 
 
