@@ -18,6 +18,8 @@ import csv
 import urllib.request
 from datetime import date, timedelta
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import numpy as np
 
 SUCCESS = 1
 FAILURE = 0
@@ -35,6 +37,10 @@ FILE_NAME = "data_" + str(date.today()) + ".csv"
 
 
 def download_data():
+    """
+    downloads the dataset as an csv file, and saves it in the projects folder
+    :return: 1 upon success, 0 otherwise
+    """
     try:
         print(DOWNLOAD_PROCESS_MSG)
         urllib.request.urlretrieve(URL, FILE_NAME)
@@ -46,6 +52,12 @@ def download_data():
 
 
 def generate_sub_dict(topics, line):
+    """
+    matchces parallel elements from two arrays into key:value
+    :param topics: keys
+    :param line: values
+    :return: dictionary
+    """
     sub_dict = dict()
     for topic, item in zip(topics, line):
         sub_dict[topic] = item
@@ -171,11 +183,24 @@ def generic_plot(lst, data_or_country, end_date, start_date):
     """
     a helper method that organizes the plots
     :param lst: either countries or data array
-    :param data_or_country: 
-    :param end_date: 
-    :param start_date:
-    :return: 
+    :param data_or_country: a data or a country to show
+    :param end_date
+    :param start_date
     """
+    # months = mdates.MonthLocator()
+    # days = mdates.DayLocator()
+
+    # fig,axis = plt.subplot()
+    # axis.plot('date',data_or_country,data=x_data)
+    # axis.xaxis.set_major_locator(months)
+    # axis.xaxis.set_minor_locator(days)
+    # datemin = np.datetime64(x_data['date'][0],'m')
+    # datemax = np.datetime64(x_data['data'][-1],'m')+np.timedelta64(1,'m')
+    # axis.set_xlim(datemin,datemax)
+    # axis.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+    # axis.grid(True)
+    # fig.autofmt_xdata()
+    # plt.show()
     plt.title(data_or_country + " from " + start_date + " to " + end_date)
     plt.xlabel("date")
     plt.xticks(rotation="vertical")
@@ -226,10 +251,10 @@ if __name__ == '__main__':
     # example:
     start = "2020-09-01"
     end = "2020-10-03"
-    data_str = 'total_cases_per_million'
+    data_str = 'total_deaths'
     country_lst = ["Israel", "United States"]
-    data_list = ['total_deaths',"total_cases"] #TODO: there a bug here, data has no effect on plot  
+    data_list = ['total_cases_per_million', 'total_tests_per_thousand']
     data_structure = get_oecd_dict()
 
-    # plot_multiple_countries(country_lst, data_str, end, start, data_structure)
-    plot_multiple_data(country_lst[0],data_list,end,start,data_structure)
+    plot_multiple_countries(country_lst, data_str, end, start, data_structure)
+    # plot_multiple_data(country_lst[0], data_list, end, start, data_structure)
